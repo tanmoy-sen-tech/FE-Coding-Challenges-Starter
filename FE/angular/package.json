@@ -8,7 +8,8 @@
     "start": "ng serve",
     "build": "ng build --aot=true --base-href=/fe-code-test --delete-output-path=true --output-path=dist",
     "test": "jest",
-    "test:watch": "ng test --watch",
+    "test:watch": "jest --watch",
+    "test:coverage":"jest --coverage",
     "lint": "ng lint"
   },
   "author": "degreed",
