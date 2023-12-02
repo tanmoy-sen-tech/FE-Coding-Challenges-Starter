@@ -10,10 +10,11 @@
     border: 2px solid $darkerGray;
 
     .image {
-      padding-right: 30px;
+      padding-right: 0;
+      text-align: center;
 
       img {
-        width: 100%;
+        max-width: 160px;
         border-radius: $radius;
       }
     }
@@ -25,7 +26,7 @@
         font-family: $fontStackAccent;
         font-size: $headerFontSize;
         font-weight: $fontWeightBold;
-        height: $wideSpace;
+        min-height: $wideSpace;
         border-bottom: 1px solid $darkGray;
       }
       .details,
@@ -54,6 +55,7 @@
           margin-left: 0;
 
           div {
+            color: #1d1d1d;
             display: inline-block;
             padding: 5px 10px;
             border: 1px solid $darkGray;
@@ -73,6 +75,12 @@
         font-size: $plotFontSize;
         font-weight: $fontWeightRegular;
       }
+      .action-button{
+        flex-grow: 1;
+        display: flex;
+        justify-content: flex-end;
+        align-items: flex-end;
+      }
       .nav {
         text-align: right;
 
@@ -80,6 +88,20 @@
           margin-left: 10px;
         }
       }
+    }
+  }
+}
+@media only screen and (min-width: 768px) {
+  .movie,
+  .movies {
+    > li {
+      flex-direction: row;
+
+      
+    .image {
+      padding-right: 30px;
+      text-align: unset;
+    }
     }
   }
 }
