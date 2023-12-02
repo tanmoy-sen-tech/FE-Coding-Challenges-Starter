@@ -15,8 +15,9 @@ ul {
 button {
   &.imdb,
   &.detail {
-    background: #f9b44a;
-    color: #fff;
+    background: $brightYellow;
+    color: $brandBlack;
+    cursor: pointer;
     font-family: $fontStackBold;
     font-size: 16px;
     padding: 15px 45px;
