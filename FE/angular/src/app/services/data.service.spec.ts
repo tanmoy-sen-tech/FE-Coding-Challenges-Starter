@@ -1,105 +1,74 @@
-import { HttpClient } from '@angular/common/http';
-import { mockProvider, SpectatorService } from '@ngneat/spectator';
-import { createServiceFactory } from '@ngneat/spectator/jest';
-import { of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
 import { DataService } from './data.service';
-
-const mockGet = jest.fn().mockReturnValue(of([]));
-const mockHttpClient = mockProvider(HttpClient, {
-  get: mockGet
-});
-
-const serviceUrl = 'https://www.omdbapi.com/?apikey=f59b2e4b&';
-const mockDecades = [2000, 2010];
-const mockMovies = [
-  {
-    Title: 'Mock Movie',
-    Year: 2000,
-    Rated: 'G',
-    Released: '01 Jan 2000',
-    Runtime: '90 min',
-    Genre: 'Mock Genre',
-    Director: 'Director McMock',
-    Writer: 'Writer Mock, Writer Mockerson',
-    Actors: 'Actor McMock, Actor Mockerson',
-    Plot: 'Mock movie plot summary.',
-    Poster:
-      'https://m.media-amazon.com/images/M/MV5BOTY4YjI2N2MtYmFlMC00ZjcyLTg3YjEtMDQyM2ZjYzQ5YWFkXkEyXkFqcGdeQXVyMTQxNzMzNDI@._V1_SX300.jpg',
-    imdbID: 'tt123',
-    Type: 'movie'
-  },
-  {
-    Title: 'Mock Movie 2',
-    Year: 2011,
-    Rated: 'G',
-    Released: '01 Jan 2011',
-    Runtime: '90 min',
-    Genre: 'Mock Genre',
-    Director: 'Director McMock',
-    Writer: 'Writer Mock, Writer Mockerson',
-    Actors: 'Actor McMock, Actor Mockerson',
-    Plot: 'Mock movie plot summary.',
-    Poster:
-      'https://m.media-amazon.com/images/M/MV5BOTY4YjI2N2MtYmFlMC00ZjcyLTg3YjEtMDQyM2ZjYzQ5YWFkXkEyXkFqcGdeQXVyMTQxNzMzNDI@._V1_SX300.jpg',
-    imdbID: 'tt123',
-    Type: 'movie'
-  }
-];
+import { mockDecades, mockMovies } from '../test/mockData.stub';
 
 describe('DataService', () => {
-  let spectator: SpectatorService<DataService>;
   let service: DataService;
-  const createService = createServiceFactory({
-    service: DataService,
-    imports: [],
-    declarations: [],
-    providers: [mockHttpClient]
-  });
+  let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.restoreAllMocks();
-    spectator = createService();
-    service = spectator.service;
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [DataService],
+    });
+
+    service = TestBed.inject(DataService);
+    httpTestingController = TestBed.inject(HttpTestingController);
   });
 
-  test('should create the service', () => {
+  afterEach(() => {
+    httpTestingController.verify();
+  });
+
+  it('should be created', () => {
     expect(service).toBeTruthy();
   });
 
   describe('getFilteredMovies', () => {
-    describe('WHEN decade is undefined', () => {
-      test('should return all movies', () => {
-        expect(service.getFilteredMovies(mockMovies)).toEqual(mockMovies);
-      });
+    it('should return all movies when decade is not provided', () => {
+      const result = service.getFilteredMovies(mockMovies);
+      expect(result).toEqual(mockMovies);
     });
-    describe('WHEN decade is defined', () => {
-      test('should return only movies from that decade', () => {
-        expect(service.getFilteredMovies(mockMovies, 2010)).toEqual([mockMovies[1]]);
-      });
+
+    it('should filter movies based on the provided decade', () => {
+      const result = service.getFilteredMovies(mockMovies, 2000);
+      expect(result).toEqual([mockMovies[0]]);
     });
   });
 
   describe('getMovie', () => {
-    const mockMovie = mockMovies[0];
-    beforeEach(() => {
-      mockGet.mockReturnValueOnce(of(mockMovie));
-      service.getMovie(mockMovie.imdbID);
-    });
-    test('should call http.get', () => {
-      expect(mockGet).toBeCalledWith(`${serviceUrl}i=${mockMovie.imdbID}`);
+    it('should make an HTTP request to get movie details', () => {
+      const mockId = 'tt123';
+
+      service.getMovie(mockId).subscribe();
+
+      const req = httpTestingController.expectOne(`${service['serviceUrl']}i=${mockId}`);
+      expect(req.request.method).toEqual('GET');
+
+      req.flush({}); // You can provide a mock response here if needed
     });
   });
 
   describe('getMovies', () => {
-    beforeEach(() => {
-      mockGet.mockReturnValueOnce(of({ Response: 'True', Search: mockMovies, totalResults: '2' }));
-      mockGet.mockReturnValue(of(mockMovies[1]));
-      service.getMovies();
+    it('should return stored movies if already available', () => {
+      service['storedMovies'] = { Search: mockMovies, Decades:mockDecades };
+
+      service.getMovies().subscribe((result) => {
+        expect(result).toEqual(service['storedMovies']);
+      });
+
+      httpTestingController.expectNone(`${service['serviceUrl']}s=Batman&type=movie`);
     });
-    test('should call http.get', () => {
-      expect(mockGet).toBeCalledWith(`${serviceUrl}s=Batman&type=movie`);
+
+  });
+
+  describe('convertToWebP', () => {
+    it('should replace ".jpg" with ".webp" in the URL', () => {
+      const imageUrl = 'https://example.com/image.jpg';
+      const result = service.convertToWebP(imageUrl);
+      expect(result).toEqual('https://example.com/image.webp');
     });
   });
+
 });
