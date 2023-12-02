@@ -1,0 +1,39 @@
+<div class="grid grid-bleed">
+  <div class="image col-12 col-sm-3"><img [src]="movie.Poster" [alt]="movie.Title" /></div>
+  <div class="content col-12 col-sm-9 col-grid">
+    <div class="title">{{ movie.Title }} ({{ movie.Year }})</div>
+    <ul class="metadata">
+      <li class="rated">
+        <div>{{ movie.Rated }}</div>
+      </li>
+      <li class="runtime">{{ movie.Runtime }}</li>
+      <li *ngIf="isDetailsView" class="genre">{{ movie.Genre }}</li>
+      <li class="release">{{ movie.Released }}</li>
+    </ul>
+    <ul *ngIf="isDetailsView" class="details">
+      <li>
+        <strong>Director:</strong>
+        {{ movie.Director }}
+      </li>
+      <li>
+        <strong>Writer:</strong>
+        {{ movie.Writer }}
+      </li>
+      <li>
+        <strong>Stars:</strong>
+        {{ movie.Actors }}
+      </li>
+    </ul>
+    <div class="plot">
+      {{ movie.Plot }}
+    </div>
+    <div class="action-button">
+      <ng-container *ngIf="isDetailsView; else goDetailsComponent">
+        <app-go-imdb [imdbId]="movie.imdbID"></app-go-imdb>
+      </ng-container>
+      <ng-template #goDetailsComponent>
+        <app-go-details [imdbId]="movie.imdbID"></app-go-details>
+      </ng-template>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,12 @@
+<div *ngIf="!isLoading; else loadingTemplate">
+  <app-decades *ngIf="decades?.length" [decades]="decades" [currentDecade]="currentDecade"
+    (updateDecade)="displayMovies($event)"></app-decades>
+  <ul class="movies" *ngIf="filteredMovies.length">
+    <li *ngFor="let movie of filteredMovies;trackBy: trackByFn" class="grid grid-bleed">
+      <app-movie-details [movie]="movie" [isDetailsView]="false"></app-movie-details>
+    </li>
+  </ul>
+</div>
+<ng-template #loadingTemplate>
+  <app-loading-spinner></app-loading-spinner>
+</ng-template>

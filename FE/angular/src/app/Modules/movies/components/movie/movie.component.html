@@ -1,0 +1,13 @@
+<!-- movie.component.html -->
+<app-go-back></app-go-back>
+
+<ul class="movies" *ngIf="movie$ | async as movie; else loadingTemplate">
+  <li class="grid grid-bleed">
+    <app-movie-details [movie]="movie"></app-movie-details>
+  </li>
+
+</ul>
+
+<ng-template #loadingTemplate>
+  <app-loading-spinner></app-loading-spinner>
+</ng-template>
