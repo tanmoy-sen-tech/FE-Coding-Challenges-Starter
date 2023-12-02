@@ -1,0 +1,10 @@
+<nav *ngIf="links.length">
+  <button
+    *ngFor="let link of links; let index = index;"
+    (click)="onClick(link, index)"
+    class="nav"
+    [class.active]="link.isActive"
+  >
+    {{ link.label }}
+  </button>
+</nav>
