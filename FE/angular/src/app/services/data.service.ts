@@ -26,6 +26,15 @@ export class DataService {
   }
 
   public getMovie(id: string): Observable<MovieComplete> {
+    // added check to find if the details already present 
+    // then show it from storedMovies
+    // else call api to get the specific data
+    if (this.storedMovies) {
+      const index = this.storedMovies.Search.findIndex((item: MovieComplete) => item.imdbID === id);
+      if (index >= 0) {
+        return of(this.storedMovies.Search[index]);
+      }
+    }
     return this.http.get<MovieDetails>(`${this.serviceUrl}i=${id}`).pipe(
       map(({ Actors, Director, Genre, imdbID, Plot, Poster, Rated, Released, Runtime, Title, Type, Writer, Year }) => ({
         Actors,
@@ -74,7 +83,12 @@ export class DataService {
     );
   }
 
-  public convertToWebP(imageUrl: string) {
+  /**
+   * convertToWebP
+   * @param imageUrl:string
+   * @returns stirng
+   */
+  public convertToWebP(imageUrl: string): string {
     // Replace '.jpg' with '.webp' in the URL
     const webpUrl = imageUrl.replace(/\.jpg$/, '.webp');
     return webpUrl;
