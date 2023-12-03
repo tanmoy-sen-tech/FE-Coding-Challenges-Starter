@@ -26,7 +26,7 @@ export class DataService {
   }
 
   public getMovie(id: string): Observable<MovieComplete> {
-    // added check to find if the details already present 
+    // added check to find if the details already present
     // then show it from storedMovies
     // else call api to get the specific data
     if (this.storedMovies) {
