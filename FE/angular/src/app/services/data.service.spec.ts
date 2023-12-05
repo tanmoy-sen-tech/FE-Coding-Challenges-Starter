@@ -1,74 +1,79 @@
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { TestBed } from '@angular/core/testing';
+import { HttpClient } from '@angular/common/http';
+import { mockProvider, SpectatorService } from '@ngneat/spectator';
+import { createServiceFactory } from '@ngneat/spectator/jest';
+import { of } from 'rxjs';
 import { DataService } from './data.service';
-import { mockDecades, mockMovies } from '../test/mockData.stub';
+import { mockMovies } from '../test/mockData.stub';
+
+const mockGet = jest.fn().mockReturnValue(of([]));
+const mockHttpClient = mockProvider(HttpClient, {
+  get: mockGet
+});
+
+const serviceUrl = 'https://www.omdbapi.com/?apikey=f59b2e4b&';
+
 
 describe('DataService', () => {
+  let spectator: SpectatorService<DataService>;
   let service: DataService;
-  let httpTestingController: HttpTestingController;
+  const createService = createServiceFactory({
+    service: DataService,
+    imports: [],
+    declarations: [],
+    providers: [mockHttpClient]
+  });
 
   beforeEach(() => {
-    TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [DataService],
-    });
-
-    service = TestBed.inject(DataService);
-    httpTestingController = TestBed.inject(HttpTestingController);
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
+    spectator = createService();
+    service = spectator.service;
   });
 
-  afterEach(() => {
-    httpTestingController.verify();
-  });
-
-  it('should be created', () => {
+  test('should create the service', () => {
     expect(service).toBeTruthy();
   });
 
   describe('getFilteredMovies', () => {
-    it('should return all movies when decade is not provided', () => {
-      const result = service.getFilteredMovies(mockMovies);
-      expect(result).toEqual(mockMovies);
+    describe('WHEN decade is undefined', () => {
+      test('should return all movies', () => {
+        expect(service.getFilteredMovies(mockMovies)).toEqual(mockMovies);
+      });
     });
-
-    it('should filter movies based on the provided decade', () => {
-      const result = service.getFilteredMovies(mockMovies, 2000);
-      expect(result).toEqual([mockMovies[0]]);
+    describe('WHEN decade is defined', () => {
+      test('should return only movies from that decade', () => {
+        expect(service.getFilteredMovies(mockMovies, 2010)).toEqual([mockMovies[1]]);
+      });
     });
   });
 
   describe('getMovie', () => {
-    it('should make an HTTP request to get movie details', () => {
-      const mockId = 'tt123';
-
-      service.getMovie(mockId).subscribe();
-
-      const req = httpTestingController.expectOne(`${service['serviceUrl']}i=${mockId}`);
-      expect(req.request.method).toEqual('GET');
-
-      req.flush({}); // You can provide a mock response here if needed
+    const mockMovie = mockMovies[0];
+    beforeEach(() => {
+      mockGet.mockReturnValueOnce(of(mockMovie));
+      service.getMovie(mockMovie.imdbID);
+    });
+    test('should call http.get', () => {
+      expect(mockGet).toBeCalledWith(`${serviceUrl}i=${mockMovie.imdbID}`);
     });
   });
 
   describe('getMovies', () => {
-    it('should return stored movies if already available', () => {
-      service['storedMovies'] = { Search: mockMovies, Decades:mockDecades };
-
-      service.getMovies().subscribe((result) => {
-        expect(result).toEqual(service['storedMovies']);
-      });
-
-      httpTestingController.expectNone(`${service['serviceUrl']}s=Batman&type=movie`);
+    beforeEach(() => {
+      mockGet.mockReturnValueOnce(of({ Response: 'True', Search: mockMovies, totalResults: '2' }));
+      mockGet.mockReturnValue(of(mockMovies[1]));
+      service.getMovies();
     });
-
+    test('should call http.get', () => {
+      expect(mockGet).toBeCalledWith(`${serviceUrl}s=Batman&type=movie`);
+    });
   });
 
   describe('convertToWebP', () => {
-    it('should replace ".jpg" with ".webp" in the URL', () => {
+    test('should replace ".jpg" with ".webp" in the URL', () => {
       const imageUrl = 'https://example.com/image.jpg';
       const result = service.convertToWebP(imageUrl);
       expect(result).toEqual('https://example.com/image.webp');
     });
   });
-
 });
